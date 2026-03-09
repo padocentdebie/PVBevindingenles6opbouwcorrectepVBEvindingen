@@ -2,115 +2,118 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>GGP - ASTMA Structuur Analyse</title>
+    <title>GGP ASTMA - De Puzzel</title>
     <style>
         :root { --police-blue: #1c2b4a; --police-gold: #f1c40f; --bg-gray: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-gray); color: #334155; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-gray); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Linkerkant: De alinea's */
-        .source-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .draggable-item { 
-            background: #fff; border: 2px solid #e2e8f0; padding: 15px; margin-bottom: 15px; 
-            border-radius: 8px; cursor: grab; font-size: 0.95rem; line-height: 1.5;
+        .instruction { background: var(--police-blue); color: white; padding: 20px; border-radius: 8px; max-width: 1100px; margin-bottom: 20px; }
+        
+        .container { 
+            width: 100%; max-width: 1250px; 
+            display: grid; grid-template-columns: 450px 1fr; /* Links de chaos, rechts de vakken */
+            gap: 40px; align-items: start;
         }
-        .draggable-item:active { cursor: grabbing; }
-
-        /* Rechterkant: ASTMA Zones */
+        
+        /* De Chaos-kolom */
+        .source-container { background: #e2e8f0; padding: 20px; border-radius: 12px; min-height: 800px; }
+        
+        .draggable-item { 
+            background: #fff; border: 2px solid #cbd5e1; padding: 15px; margin-bottom: 20px; 
+            border-radius: 8px; font-size: 0.85rem; line-height: 1.5; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .locked { border-left: 8px solid #ef4444; }
+        .unlocked { border-left: 8px solid #10b981; cursor: grab; background: #f0fdf4; transform: scale(1.02); }
+        
+        /* De ASTMA-vakken */
         .target-zones { display: flex; flex-direction: column; gap: 20px; }
         .drop-zone { 
-            background: #fff; border: 2px dashed #cbd5e1; padding: 25px; border-radius: 12px; 
-            min-height: 80px; position: relative; transition: 0.3s;
+            background: #fff; border: 3px dashed #cbd5e1; padding: 30px; border-radius: 12px; 
+            min-height: 120px; position: relative; display: flex; align-items: center;
         }
-        .drop-zone.over { border-color: var(--police-blue); background: #f1f5f9; }
         .drop-zone::before { 
-            content: attr(data-label); position: absolute; top: -12px; left: 15px; 
-            background: var(--police-blue); color: white; padding: 3px 12px; border-radius: 5px; font-size: 0.8rem; font-weight: bold;
+            content: attr(data-label); position: absolute; top: -15px; left: 20px; 
+            background: var(--police-blue); color: white; padding: 5px 15px; border-radius: 5px; font-weight: bold;
         }
-        .correct-drop { border-color: #10b981 !important; background: #f0fdf4 !important; border-style: solid !important; }
+        .correct-drop { border: 3px solid #10b981; background: #fff; }
 
-        .header-box { background: var(--police-blue); color: white; padding: 20px; border-radius: 8px; width: 100%; max-width: 1160px; margin-bottom: 20px; text-align: center; }
+        input { width: 90%; margin-top: 10px; padding: 8px; border: 1px solid #94a3b8; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div class="header-box">
-    <h1 style="margin:0">GGP PV-Analyse: Het ASTMA Model</h1>
-    <p style="margin:10px 0 0">Sleep de alinea's naar de juiste plek. Let op de GGP-eisen (OTT/OVT/Redenen van wetenschap).</p>
+<div class="instruction">
+    <strong>Instructie:</strong> De alinea's hieronder staan in de war. 
+    <br>1. Verbeter de stijlfout in een blokje naar keuze om het te kunnen slepen.
+    <br>2. Sleep het blokje naar het juiste vak (A, S, T, M of A) om het PV weer logisch op te bouwen.
 </div>
 
 <div class="container">
     <div class="source-container" id="source-list">
-        <h3 style="margin-top:0">Beschikbare alinea's</h3>
-        </div>
+        <h2 style="margin-top:0; text-align:center; color:#475569;">Ongeordende Alinea's</h2>
+    </div>
 
     <div class="target-zones">
-        <div class="drop-zone" data-label="Aanleiding (Hoedanigheid/OC-opdracht)" data-type="A"></div>
-        <div class="drop-zone" data-label="Situatie (Decor in OTT)" data-type="S"></div>
-        <div class="drop-zone" data-label="Toedracht (Handelingen in OVT)" data-type="T"></div>
-        <div class="drop-zone" data-label="Maatregelen (Strafrecht/Ambtsinstructie)" data-type="M"></div>
-        <div class="drop-zone" data-label="Afhandeling (Afronding)" data-type="Af"></div>
+        <div class="drop-zone" data-label="AANLEIDING (Wie/Wat/Waar/Wanneer)" data-type="A"></div>
+        <div class="drop-zone" data-label="SITUATIE (Decor/OTT)" data-type="S"></div>
+        <div class="drop-zone" data-label="TOEDRACHT (Handelingen/OVT)" data-type="T"></div>
+        <div class="drop-zone" data-label="MAATREGELEN (Bevoegdheden/Recht)" data-type="M"></div>
+        <div class="drop-zone" data-label="AFHANDELING (Slot/Ambtseed)" data-type="Af"></div>
     </div>
 </div>
 
 <script>
-    /* DOCENT: Pas hieronder de teksten aan. 
-       - type: A (Aanleiding), S (Situatie), T (Toedracht), M (Maatregelen), Af (Afhandeling)
-    */
     const pvData = [
-        { id: 1, type: "A", text: "Ik, voornaam ACHTERNAAM, hoofdagente van politie Eenheid Amersfoort, was op maandag 9 maart 2026 gekleed in het voorgeschreven politie-uniform en deed dienst in een herkenbaar dienstvoertuig. Ik was belast met de noodhulpverlening en kreeg de opdracht van de Operationeel Centrum (OC) om te gaan naar..." },
-        { id: 2, type: "S", text: "De parkeerplaats bij de supermarkt is verhard met klinkers. Er staan meerdere voertuigen geparkeerd. Aan de linkerzijde bevindt zich een overdekte fietsenstalling. Het zicht is ter plaatse goed door de aanwezige straatverlichting." },
-        { id: 3, type: "T", text: "Ik zag dat de verdachte met versnelde pas wegliep. Ik hoorde de winkelier roepen: 'Houd hem tegen!'. Vervolgens zag ik dat de man een zilverkleurig voorwerp in de bosjes wierp. Ik rook een sterke alcohollucht toen ik de man naderde." },
-        { id: 4, type: "M", text: "Op maandag 9 maart 2026, om 11:15 uur, heb ik de verdachte aangehouden voor diefstal. Ik heb hem direct de cautie gegeven. Omdat de verdachte zich verzette, heb ik hem conform de Ambtsinstructie in de boeien geslagen (transportboeien)." },
-        { id: 5, type: "Af", text: "De verdachte is voor nader onderzoek ingesloten. Het aangetroffen voorwerp is als bewijs veiliggesteld. Ik heb dit proces-verbaal naar waarheid opgemaakt op mijn ambtseed." }
+        { id: 1, type: "A", error: "telefoneren", text: "Op maandag 09 maart 2026 kregen wij, verbalisanten J. de VRIES en S. de JONG (aspiranten Drachten Centrum), van het OC de opdracht om naar de Sportlaan 7 te gaan. We moesten de melder op telefoneren over de situatie. We waren in uniform en reden in een herkenbaar voertuig." },
+        { id: 2, type: "S", error: "witte", text: "De parkeervakken liggen aan de noordzijde van Sportlaan 7. Ter plaatse ligt witte sneeuw. Een zwarte VW Golf (AA-11-BB) staat geparkeerd. In de auto zit een man met een gezet postuur." },
+        { id: 3, type: "T", error: "beseffen", text: "Ik zag op beelden dat J.J. STOUT geld aannam. Ik zag dat Stout zich niet leek te beseffen dat wij hem zagen toen hij een tas op de achterbank zette. Hij maakte een zenuwachtige indruk en trilde met zijn handen." },
+        { id: 4, type: "M", error: "criminele", text: "Om 11:15 uur vorderde ik inzage in zijn ID. Vanwege zijn criminele misdaden uit het verleden en de tas met wit poeder, hebben we hem op grond van de Opiumwet aan zijn kleding onderzocht." },
+        { id: 5, type: "Af", error: "eeuwig", text: "De verdachte is overgebracht naar bureau Drachten. De USB-stick is voor altijd en eeuwig veiliggesteld. Waarvan door ons op ambtseed is opgemaakt dit proces-verbaal." }
     ];
 
     const sourceList = document.getElementById('source-list');
 
-    // Husselen en tonen
+    // De Sort-functie zorgt dat ze ELKE KEER in een andere chaos-volgorde staan
     pvData.sort(() => Math.random() - 0.5).forEach(item => {
         const div = document.createElement('div');
-        div.className = 'draggable-item';
-        div.draggable = true;
-        div.innerText = item.text;
+        div.className = 'draggable-item locked';
         div.id = `item-${item.id}`;
-        div.dataset.type = item.type;
-        
-        div.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', item.id);
-            e.dataTransfer.setData('correct-type', item.type);
-        });
-        
+        div.innerHTML = `
+            <div>${item.text}</div>
+            <input type="text" placeholder="Type de stijlfout om te ontgrendelen..." oninput="check(this, '${item.error}', '${item.id}')">
+        `;
         sourceList.appendChild(div);
     });
 
-    // Drop-zones configureren
+    window.check = (input, error, id) => {
+        if (input.value.toLowerCase().trim() === error.toLowerCase()) {
+            const el = document.getElementById(`item-${id}`);
+            el.classList.replace('locked', 'unlocked');
+            el.draggable = true;
+            input.disabled = true;
+            input.style.background = "#d1fae5";
+            
+            el.ondragstart = (e) => {
+                e.dataTransfer.setData('id', id);
+                e.dataTransfer.setData('type', pvData.find(x => x.id == id).type);
+            };
+        }
+    };
+
     document.querySelectorAll('.drop-zone').forEach(zone => {
-        zone.addEventListener('dragover', e => {
-            e.preventDefault();
-            zone.classList.add('over');
-        });
-
-        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
-
-        zone.addEventListener('drop', e => {
-            e.preventDefault();
-            zone.classList.remove('over');
-            const draggedId = e.dataTransfer.getData('text/plain');
-            const correctType = e.dataTransfer.getData('correct-type');
-            const targetType = zone.dataset.type;
-
-            if (correctType === targetType) {
-                const element = document.getElementById(`item-${draggedId}`);
-                zone.appendChild(element);
-                element.draggable = false;
+        zone.ondragover = (e) => e.preventDefault();
+        zone.ondrop = (e) => {
+            const id = e.dataTransfer.getData('id');
+            const type = e.dataTransfer.getData('type');
+            if (type === zone.dataset.type) {
+                zone.appendChild(document.getElementById(`item-${id}`));
                 zone.classList.add('correct-drop');
             } else {
-                alert("Verkeerde plek. Kijk goed naar de werkwoordstijden en de GGP-criteria!");
+                alert("Verkeerde categorie! Denk aan de GGP-structuur.");
             }
-        });
+        };
     });
 </script>
-
 </body>
 </html>
