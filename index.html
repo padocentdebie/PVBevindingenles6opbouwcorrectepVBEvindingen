@@ -25,6 +25,7 @@
         textarea { width: 100%; height: 110px; margin-top: 10px; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; resize: vertical; font-size: 0.85rem; }
         .tip-txt { color: var(--alert-red); font-size: 0.75rem; margin-top: 5px; font-weight: bold; min-height: 1rem; }
 
+        .feedback-section { grid-column: 1 / -1; margin-top: 40px; padding: 20px; background: #f1f5f9; border-radius: 12px; border: 2px solid var(--police-blue); }
         .peer-card { background: white; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
         .feedback-controls { display: flex; flex-direction: column; gap: 8px; }
     </style>
@@ -53,15 +54,13 @@
 
 <div id="exercise-screen" class="hidden">
     <div class="instruction-box">
-        <strong>💡 Instructie:</strong> De bevindingen in de linkerkolom staan door elkaar. 
-        1. Herschrijf ze naar professionele PV-stijl (OVT, ik-vorm, datum/tijd). 
-        2. Sleep ze naar de juiste ASTMA-fase. 
-        3. Help je collega's onderaan met feedback!
+        <strong>💡 Instructie:</strong> Herschrijf de bevindingen (OVT, ik-vorm, datum/tijd) en sleep ze naar de juiste ASTMA-fase. 
+        <b>Tip:</b> Je ziet de feedback van collega's pas nadat je alle 5 de blokken hebt ingedeeld!
     </div>
 
     <div class="main-content">
         <div id="chaos-column" class="source-list">
-            <h3 style="margin-top:0; color:var(--police-blue);">Bevindingen (In willekeurige volgorde)</h3>
+            <h3 style="margin-top:0; color:var(--police-blue);">Bevindingen</h3>
         </div>
 
         <div class="target-zones">
@@ -72,8 +71,8 @@
             <div class="drop-zone" data-type="Af"><span class="drop-zone-label">A - Afhandeling</span></div>
         </div>
 
-        <div class="feedback-section" style="grid-column: 1 / -1; margin-top: 40px;">
-            <h3>Live Peer-Feedback</h3>
+        <div id="feedback-area" class="feedback-section hidden">
+            <h3 style="color:var(--police-blue); margin-top:0;">Live Peer-Feedback</h3>
             <div id="peer-list"></div>
         </div>
     </div>
@@ -101,17 +100,17 @@
 
     let myName = "";
     let myClass = "";
+    let placedItems = 0;
 
     window.startOefening = () => {
         myName = document.getElementById('student-name').value.trim();
         myClass = document.getElementById('student-class').value;
-        if (!myName) return alert("Voer eerst je naam in.");
+        if (!myName) return alert("Naam invullen.");
 
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('exercise-screen').classList.remove('hidden');
 
         const container = document.getElementById('chaos-column');
-        // HUSSELEN VAN DE BLOKKEN
         [...pvData].sort(() => Math.random() - 0.5).forEach(item => {
             const div = document.createElement('div');
             div.className = 'draggable-item';
@@ -144,7 +143,7 @@
         const hasTime = /(uur|\d{2}:\d{2})/.test(input);
         const hasMonth = /(jan|feb|maa|apr|mei|jun|jul|aug|sep|okt|nov|dec)/.test(input);
         if(!hasTime || !hasMonth) missing.push("datum/tijd");
-        if(input.includes(" je ") || input.includes("jouw") || input.startsWith("je ")) missing.push("ik-vorm (verbalisant)");
+        if(input.includes(" je ") || input.includes("jouw") || input.startsWith("je ")) missing.push("ik-vorm");
 
         if(item.antiCheck && item.antiCheck.some(w => input.includes(w))) { 
             tipEl.innerText = item.tip; 
@@ -153,7 +152,7 @@
         }
         
         const contentMatch = item.check.some(c => Array.isArray(c) ? c.some(a => input.includes(a)) : input.includes(c));
-        if(!contentMatch) missing.push("specifieke GGP-termen");
+        if(!contentMatch) missing.push("GGP-termen");
 
         if(missing.length === 0) {
             tipEl.innerText = "✅ Tekst ziet er professioneel uit!";
@@ -172,11 +171,20 @@
             const txt = e.dataTransfer.getData('txt');
             
             if(type === zone.dataset.type) {
-                zone.appendChild(document.getElementById(`item-${id}`));
+                const itemDiv = document.getElementById(`item-${id}`);
+                if (itemDiv.parentNode.className === 'source-list') {
+                    placedItems++;
+                }
+                
+                zone.appendChild(itemDiv);
                 zone.classList.add('correct-drop');
                 set(ref(db, `ggp_peer/${myClass}/${myName.replace(/\s+/g, '_')}/${type}`), { text: txt, tip: "", top: "" });
+
+                if (placedItems >= 5) {
+                    document.getElementById('feedback-area').classList.remove('hidden');
+                }
             } else {
-                alert("Deze bevinding hoort niet in de " + zone.dataset.type + " fase!");
+                alert("Verkeerde ASTMA-fase!");
             }
         };
     });
@@ -195,14 +203,14 @@
                     list.innerHTML += `
                         <div class="peer-card">
                             <div>
-                                <strong>Collega: ${sName.replace(/_/g, ' ')} | ASTMA: ${fase}</strong>
+                                <strong>Collega: ${sName.replace(/_/g, ' ')} | Fase: ${fase}</strong>
                                 <p style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.85rem;">${entry.text}</p>
                                 <small><b>Feedback:</b> Top: ${entry.top || "-"} | Tip: ${entry.tip || "-"}</small>
                             </div>
                             <div class="feedback-controls">
                                 <input type="text" id="top-${sName}-${fase}" placeholder="Wat is goed?">
-                                <input type="text" id="tip-${sName}-${fase}" placeholder="Wat kan scherper?">
-                                <button class="btn" style="padding:5px;" onclick="window.sendFeedback('${sName}','${fase}')">Sla Feedback op</button>
+                                <input type="text" id="tip-${sName}-${fase}" placeholder="Wat kan beter?">
+                                <button class="btn" style="padding:5px;" onclick="window.sendFeedback('${sName}','${fase}')">Verstuur Feedback</button>
                             </div>
                         </div>`;
                 }
@@ -214,7 +222,7 @@
         const top = document.getElementById(`top-${sName}-${fase}`).value;
         const tip = document.getElementById(`tip-${sName}-${fase}`).value;
         update(ref(db, `ggp_peer/${myClass}/${sName}/${fase}`), { top: top, tip: tip });
-        alert("Feedback is verzonden naar je collega!");
+        alert("Feedback verzonden naar collega.");
     };
 </script>
 </body>
