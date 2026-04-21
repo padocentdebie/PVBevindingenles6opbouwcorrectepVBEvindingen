@@ -20,6 +20,7 @@
         .drop-zone-label { font-weight: bold; color: var(--police-blue); text-transform: uppercase; font-size: 0.8rem; margin-bottom: 10px; display: block; }
 
         .btn { background: var(--police-blue); color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        .btn:hover { background: #2a3f6a; }
         textarea { width: 100%; height: 110px; margin-top: 10px; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; resize: vertical; font-size: 0.85rem; }
         .tip-txt { color: var(--alert-red); font-size: 0.75rem; margin-top: 5px; font-weight: bold; min-height: 1rem; }
 
@@ -32,13 +33,37 @@
 </head>
 <body>
 
-<div id="login-screen" style="max-width:400px; margin: 100px auto; background:white; padding:40px; border-radius:12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+<div id="login-screen" style="max-width:400px; margin: 60px auto; background:white; padding:40px; border-radius:12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
     <h2 style="color:var(--police-blue); margin-top:0;">GGP PV Training</h2>
     <input type="text" id="student-name" placeholder="Naam (Type 'DOCENT' voor monitor)" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+    <label style="font-size: 0.8rem; color: #666;">Selecteer je klas:</label>
     <select id="student-class" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ccc; border-radius:4px;">
         <option value="Klas_Alpha">Klas Alpha</option>
         <option value="Klas_Bravo">Klas Bravo</option>
         <option value="Klas_Charlie">Klas Charlie</option>
+        <option value="Klas_Delta">Klas Delta</option>
+        <option value="Klas_Echo">Klas Echo</option>
+        <option value="Klas_Foxtrot">Klas Foxtrot</option>
+        <option value="Klas_Golf">Klas Golf</option>
+        <option value="Klas_Hotel">Klas Hotel</option>
+        <option value="Klas_India">Klas India</option>
+        <option value="Klas_Juliett">Klas Juliett</option>
+        <option value="Klas_Kilo">Klas Kilo</option>
+        <option value="Klas_Lima">Klas Lima</option>
+        <option value="Klas_Mike">Klas Mike</option>
+        <option value="Klas_November">Klas November</option>
+        <option value="Klas_Oscar">Klas Oscar</option>
+        <option value="Klas_Papa">Klas Papa</option>
+        <option value="Klas_Quebec">Klas Quebec</option>
+        <option value="Klas_Romeo">Klas Romeo</option>
+        <option value="Klas_Sierra">Klas Sierra</option>
+        <option value="Klas_Tango">Klas Tango</option>
+        <option value="Klas_Uniform">Klas Uniform</option>
+        <option value="Klas_Victor">Klas Victor</option>
+        <option value="Klas_Whiskey">Klas Whiskey</option>
+        <option value="Klas_X-ray">Klas X-ray</option>
+        <option value="Klas_Yankee">Klas Yankee</option>
+        <option value="Klas_Zulu">Klas Zulu</option>
     </select>
     <button class="btn" onclick="startOefening()">Start Training</button>
 </div>
@@ -49,7 +74,7 @@
     </div>
 
     <div id="instruction-area" class="instruction-box">
-        <strong>💡 Instructie:</strong> Herschrijf de bevindingen naar GGP-stijl (ik-vorm, OVT, datum/tijd).
+        <strong>💡 Instructie:</strong> Herschrijf de bevindingen naar GGP-stijl (ik-vorm, OVT, datum/tijd). Sleep de blokken naar de juiste fase.
     </div>
 
     <div class="main-content">
@@ -132,13 +157,15 @@
             div.draggable = true;
             div.innerHTML = `
                 <small>BRON: "${item.text}"</small>
-                <textarea id="input-${item.id}" placeholder="Herschrijf hier..."></textarea>
+                <textarea id="input-${item.id}" placeholder="Herschrijf naar GGP-stijl..."></textarea>
                 <div id="tip-${item.id}" class="tip-txt"></div>
             `;
             div.ondragstart = (e) => {
                 e.dataTransfer.setData('id', item.id);
                 e.dataTransfer.setData('type', item.type);
-                e.dataTransfer.setData('txt', document.getElementById(`input-${item.id}`).value);
+                // We slaan de tekst op het moment van slepen op
+                const currentText = document.getElementById(`input-${item.id}`).value;
+                e.dataTransfer.setData('txt', currentText);
             };
             container.appendChild(div);
         });
@@ -162,7 +189,7 @@
                     tip: "" 
                 });
             } else {
-                alert("Deze tekst hoort niet in deze fase van de ASTMA.");
+                alert("Fout: Dit blok hoort in een andere fase van de ASTMA.");
             }
         };
     });
@@ -174,7 +201,7 @@
             if(!data) return;
 
             for(let sName in data) {
-                // Studenten zien alleen zichzelf (voor hun feedback), Docent ziet iedereen
+                // Studenten zien alleen hun eigen feedback, de docent ziet alles
                 if(!isDocent && sName !== myName.replace(/\s+/g, '_')) continue;
                 
                 for(let fase in data[sName]) {
@@ -190,23 +217,28 @@
                         
                         let controlsHtml = isDocent ? `
                             <div class="feedback-controls">
-                                <input type="text" class="top-input" placeholder="Top">
-                                <input type="text" class="tip-input" placeholder="Tip">
-                                <button class="btn feedback-btn" onclick="window.sendFeedback('${sName}', '${fase}')">Verstuur</button>
+                                <input type="text" class="top-input" placeholder="Top (wat is goed?)">
+                                <input type="text" class="tip-input" placeholder="Tip (wat kan beter?)">
+                                <button class="btn" style="padding: 5px;" onclick="window.sendFeedback('${sName}', '${fase}')">Feedback Opslaan</button>
                             </div>` : '';
 
                         card.innerHTML = `
                             <div class="peer-content">
                                 <strong>Collega: ${sName.replace(/_/g, ' ')} | Fase: ${fase}</strong>
-                                <p class="entry-text" style="background:#f1f5f9; padding:10px; border-radius:6px;"></p>
-                                <div class="feedback-display" style="color:var(--success-green); font-weight:bold;"></div>
+                                <p class="entry-text" style="background:#f8fafc; padding:12px; border-radius:6px; border: 1px solid #eee;"></p>
+                                <div class="feedback-display" style="margin-top:10px; padding: 10px; border-radius: 4px; background: #f0fdf4; color:#166534; display:none;"></div>
                             </div>
                             ${controlsHtml}`;
                     }
 
+                    // Update student tekst
                     card.querySelector('.entry-text').innerText = entry.text;
+                    
+                    // Update feedback weergave
+                    const fDisplay = card.querySelector('.feedback-display');
                     if(entry.top || entry.tip) {
-                        card.querySelector('.feedback-display').innerText = `Feedback: 👍 ${entry.top || '-'} | 💡 ${entry.tip || '-'}`;
+                        fDisplay.style.display = "block";
+                        fDisplay.innerHTML = `<strong>Resultaat:</strong><br>👍 ${entry.top || '-'} <br> 💡 ${entry.tip || '-'}`;
                     }
                 }
             }
@@ -221,7 +253,9 @@
         update(ref(db, `ggp_peer/${myClass}/${sName}/${fase}`), { 
             top: top, 
             tip: tip 
-        }).then(() => alert("Feedback verzonden!"));
+        }).then(() => {
+            alert("Feedback voor " + sName.replace(/_/g, ' ') + " opgeslagen.");
+        });
     };
 </script>
 </body>
