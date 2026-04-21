@@ -28,7 +28,6 @@
         .peer-card { background: white; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
         .feedback-controls { display: flex; flex-direction: column; gap: 8px; }
         
-        /* Docent extra styling */
         #docent-controls { background: #1c2b4a; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
     </style>
 </head>
@@ -148,7 +147,8 @@
             div.ondragstart = (e) => {
                 e.dataTransfer.setData('id', item.id);
                 e.dataTransfer.setData('type', item.type);
-                e.dataTransfer.setData('txt', document.getElementById(`input-${item.id}`).value || "[Leeg]");
+                const currentVal = document.getElementById(`input-${item.id}`).value || "[Leeg]";
+                e.dataTransfer.setData('txt', currentVal);
             };
             container.appendChild(div);
         });
@@ -156,14 +156,11 @@
 
     window.valideer = (el, id) => {
         const input = el.value.toLowerCase();
-        const item = pvData.find(x => x.id === id);
         const tipEl = document.getElementById(`tip-${id}`);
         const block = document.getElementById(`item-${id}`);
-        
         let missing = [];
         if(!/(uur|\d{2}:\d{2})/.test(input)) missing.push("tijd");
         if(input.includes(" je ")) missing.push("ik-vorm");
-        
         if(missing.length === 0) {
             tipEl.innerText = "✅ Correcte stijl";
             block.style.borderLeftColor = "var(--success-green)";
@@ -188,7 +185,7 @@
                 });
                 if(placedItems >= 5) document.getElementById('feedback-area').classList.remove('hidden');
             } else {
-                alert("Foutive fase!");
+                alert("Foutieve fase!");
             }
         };
     });
@@ -196,7 +193,6 @@
     function loadPeerData() {
         onValue(ref(db, `ggp_peer/${myClass}`), (snap) => {
             const list = document.getElementById('peer-list');
-            list.innerHTML = "";
             const data = snap.val();
             if(!data) {
                 list.innerHTML = "<p>Nog geen inzendingen in deze klas...</p>";
@@ -208,27 +204,44 @@
                 
                 for(let fase in data[sName]) {
                     const entry = data[sName][fase];
-                    list.innerHTML += `
-                        <div class="peer-card">
-                            <div>
+                    const cardId = `card-${sName}-${fase}`;
+                    let card = document.getElementById(cardId);
+
+                    if(!card) {
+                        card = document.createElement('div');
+                        card.id = cardId;
+                        card.className = 'peer-card';
+                        list.appendChild(card);
+                        
+                        // Initialiseer de kaart structuur één keer
+                        card.innerHTML = `
+                            <div class="peer-content">
                                 <strong>Collega: ${sName.replace(/_/g, ' ')} | Fase: ${fase}</strong>
-                                <p style="background:#f1f5f9; padding:10px; border-radius:6px;">${entry.text}</p>
-                                <small>Feedback: Top: ${entry.top || "-"} | Tip: ${entry.tip || "-"}</small>
+                                <p class="entry-text" style="background:#f1f5f9; padding:10px; border-radius:6px;"></p>
+                                <small class="feedback-display"></small>
                             </div>
                             <div class="feedback-controls">
-                                <input type="text" id="top-${sName}-${fase}" placeholder="Top">
-                                <input type="text" id="tip-${sName}-${fase}" placeholder="Tip">
-                                <button class="btn" style="padding:5px;" onclick="window.sendFeedback('${sName}','${fase}')">Verstuur</button>
-                            </div>
-                        </div>`;
+                                <input type="text" class="top-input" placeholder="Top">
+                                <input type="text" class="tip-input" placeholder="Tip">
+                                <button class="btn feedback-btn" style="padding:5px;">Verstuur</button>
+                            </div>`;
+                        
+                        card.querySelector('.feedback-btn').onclick = () => window.sendFeedback(sName, fase);
+                    }
+
+                    // Update alleen de waarden van de tekst van de student en de opgeslagen feedback
+                    // De inputvelden van de docent/peer blijven zo ongemoeid
+                    card.querySelector('.entry-text').innerText = entry.text;
+                    card.querySelector('.feedback-display').innerHTML = `Feedback: Top: ${entry.top || "-"} | Tip: ${entry.tip || "-"}`;
                 }
             }
         });
     }
 
     window.sendFeedback = (sName, fase) => {
-        const top = document.getElementById(`top-${sName}-${fase}`).value;
-        const tip = document.getElementById(`tip-${sName}-${fase}`).value;
+        const card = document.getElementById(`card-${sName}-${fase}`);
+        const top = card.querySelector('.top-input').value;
+        const tip = card.querySelector('.tip-input').value;
         update(ref(db, `ggp_peer/${myClass}/${sName}/${fase}`), { top: top, tip: tip });
         alert("Gefinaliseerd.");
     };
